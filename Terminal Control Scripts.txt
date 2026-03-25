@@ -1,0 +1,296 @@
+//run directly on beagleboard, runs main programs
+ssh kian@192.168.0.81
+cd ~/Drone\ Project/Drone_Sensors
+
+sudo killall continuousMultipleSensors 2>/dev/null || true
+sudo pkill -f drone_control.py 2>/dev/null || true
+
+sudo ./continuousMultipleSensors &
+sudo python3 drone_control.py
+//end
+
+
+//run on debian terminal, turns on live viewer
+cd ~
+python3 drone_live_view.py
+//end
+
+
+
+  //run directly into host terminal, grabs the latest frame from camera
+  LATEST=$(ssh kian@192.168.0.81 'cd ~/detected_frames && ls -t *.jpg | head -n1') \
+  && scp kian@192.168.0.81:~/detected_frames/"$LATEST" ~/ \
+  && xdg-open ~/"$LATEST"
+//end
+
+
+//run directly on beagleboard terminal. heartbeat between fc and beagleboard
+
+python3 - << 'EOF'
+import time
+from pymavlink import mavutil
+DEVICE = "/dev/ttyAMA0"
+BAUD = 115200
+print(f"Connecting to {DEVICE} at {BAUD}...")
+m = mavutil.mavlink_connection(DEVICE, baud=BAUD)
+print("Waiting for MAVLink heartbeat...")
+hb = m.wait_heartbeat()
+print(f"Heartbeat received from system {m.target_system}, component {m.target_component}")
+while True:
+    msg = m.recv_match(blocking=True)
+    if msg:
+        print(msg)
+EOF
+//end
+
+//run directly on beagleboard terminal motor bypass all safety checks and activates motors
+
+python3 - << 'EOF'
+import time
+from pymavlink import mavutil
+
+DEVICE = "/dev/ttyAMA0"
+BAUD   = 115200
+
+# ---------- TUNABLES ----------
+THROTTLE_PWM = 1300   # ~idle+ a bit. Try 1200–1400
+ROLL_PWM     = 1500   # mid
+PITCH_PWM    = 1500   # mid
+YAW_PWM      = 1500   # mid
+RC_NEUTRAL   = 1500
+RC_MIN       = 1000
+# ------------------------------
+
+
+def request_feedback_streams(m):
+    m.mav.request_data_stream_send(
+        m.target_system,
+        m.target_component,
+        mavutil.mavlink.MAV_DATA_STREAM_EXTRA3,
+        10,  # Hz
+        1
+    )
+    m.mav.request_data_stream_send(
+        m.target_system,
+        m.target_component,
+        mavutil.mavlink.MAV_DATA_STREAM_RC_CHANNELS,
+        10,
+        1
+    )
+
+
+def print_feedback(msg):
+    t = msg.get_type()
+
+    if t == "SERVO_OUTPUT_RAW":
+        chans = []
+        for i in range(1, 9):
+            field = f"servo{i}_raw"
+            if hasattr(msg, field):
+                chans.append(getattr(msg, field))
+        print(f"[SERVO_OUTPUT_RAW] outputs={chans}")
+
+    elif t == "RC_CHANNELS":
+        print(f"[RC_CHANNELS] ch1-8 = {msg.chan1_raw}, {msg.chan2_raw}, {msg.chan3_raw}, {msg.chan4_raw}, "
+              f"{msg.chan5_raw}, {msg.chan6_raw}, {msg.chan7_raw}, {msg.chan8_raw}")
+
+    elif t == "STATUSTEXT":
+        print(f"[STATUSTEXT] {msg.severity}: {msg.text}")
+
+
+def wait_for_armed(m, timeout=15):
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        msg = m.recv_match(blocking=True)
+        if not msg:
+            continue
+        t = msg.get_type()
+
+        if t == "HEARTBEAT":
+            base_mode = msg.base_mode
+            armed = bool(base_mode & mavutil.mavlink.MAV_MODE_FLAG_SAFETY_ARMED)
+            print(f"[HEARTBEAT] base_mode={base_mode} armed={armed}")
+            if armed:
+                print("✅ Vehicle is ARMED.")
+                return True
+
+        elif t == "STATUSTEXT":
+            print(f"[STATUSTEXT] {msg.severity}: {msg.text}")
+
+    print("⏱️ Timed out waiting for ARMED.")
+    return False
+
+
+def send_rc(m, roll, pitch, throttle, yaw,
+            ch5=RC_MIN, ch6=RC_MIN, ch7=RC_MIN, ch8=RC_MIN):
+    m.mav.rc_channels_override_send(
+        m.target_system,
+        m.target_component,
+        roll,
+        pitch,
+        throttle,
+        yaw,
+        ch5,
+        ch6,
+        ch7,
+        ch8,
+    )
+
+
+def main():
+    print(f"Connecting to {DEVICE} @ {BAUD}...")
+    m = mavutil.mavlink_connection(DEVICE, baud=BAUD)
+
+    hb = m.wait_heartbeat()
+    print(f"Heartbeat from system {m.target_system}, component {m.target_component}")
+    print("Flight mode (custom_mode):", hb.custom_mode)
+
+    m.mav.srcSystem = 255
+    m.mav.srcComponent = 190
+
+    print("Requesting feedback streams...")
+    request_feedback_streams(m)
+
+    # Let some messages flow
+    t0 = time.time()
+    while time.time() - t0 < 1.5:
+        msg = m.recv_match(blocking=False)
+        if msg:
+            print_feedback(msg)
+
+    print("\nSending ARM command...")
+    m.arducopter_arm()
+
+    if not wait_for_armed(m, timeout=20):
+        print("\n❌ Could not ARM. Check the [STATUSTEXT] messages above.")
+        return
+
+    print(f"\n🔥 Holding THROTTLE at {THROTTLE_PWM} µs until you press Ctrl+C...")
+    print("   (Roll/Pitch/Yaw at 1500µs mid)")
+    try:
+        while True:
+            # Continuously send RC override so ArduPilot keeps using our values
+            send_rc(
+                m,
+                ROLL_PWM,
+                PITCH_PWM,
+                THROTTLE_PWM,
+                YAW_PWM,
+            )
+
+            # Grab and print any interesting feedback
+            t_loop = time.time() + 0.1
+            while time.time() < t_loop:
+                msg = m.recv_match(blocking=False)
+                if msg:
+                    print_feedback(msg)
+                time.sleep(0.01)
+
+    except KeyboardInterrupt:
+        print("\nCtrl+C detected! Zeroing throttle and disarming...")
+        # Slam throttle low a few times to be sure
+        for _ in range(10):
+            send_rc(
+                m,
+                ROLL_PWM,
+                PITCH_PWM,
+                RC_MIN,   # throttle low
+                YAW_PWM,
+            )
+            time.sleep(0.05)
+
+        m.arducopter_disarm()
+        time.sleep(2)
+        print("✅ Disarmed. Script exiting.")
+
+
+if __name__ == "__main__":
+    main()
+EOF
+//end
+
+
+
+//live viewer, run directly on host terminal in case you need to change ip address
+
+cd ~
+
+rm -f drone_live_view.py
+
+cat << 'EOF' > drone_live_view.py
+#!/usr/bin/env python3
+import os
+import time
+import glob
+import subprocess
+import cv2
+
+# === CONFIG ===
+BEAGLE_HOST = "192.168.0.81"      # BeagleBoard WiFi IP 192.168.0.81
+BEAGLE_USER = "kian"
+REMOTE_DIR  = "/home/kian/Drone Project/Drone_Sensors/detected_frames"
+LOCAL_DIR   = os.path.expanduser("~/drone_frames")
+SYNC_PERIOD = 0.01  # seconds between syncs (1s refresh)
+
+os.makedirs(LOCAL_DIR, exist_ok=True)
+
+def sync_frames():
+    """
+    Pull any JPGs from the Beagle into LOCAL_DIR.
+    Uses scp; errors are suppressed so a dropped frame doesn't crash the viewer.
+    """
+    # Escape spaces in remote path for scp
+    remote_escaped = REMOTE_DIR.replace(" ", "\\ ")
+    cmd = f"scp -q {BEAGLE_USER}@{BEAGLE_HOST}:{remote_escaped}/*.jpg '{LOCAL_DIR}/'"
+    try:
+        subprocess.run(
+            cmd,
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+    except Exception as e:
+        print(f"[sync_frames] Error: {e}")
+
+def get_latest_local_image():
+    """
+    Return path to the newest JPG in LOCAL_DIR, or None if none exist.
+    """
+    files = glob.glob(os.path.join(LOCAL_DIR, "*.jpg"))
+    if not files:
+        return None
+    return max(files, key=os.path.getmtime)
+
+def main():
+    print(f"Watching remote frames from {BEAGLE_USER}@{BEAGLE_HOST}:{REMOTE_DIR}")
+    print(f"Local mirror directory: {LOCAL_DIR}")
+    print("Close the window or press 'q' to quit.\n")
+
+    last_shown = None
+    cv2.namedWindow("Drone Live View", cv2.WINDOW_NORMAL)
+
+    while True:
+        # 1) Pull newest frames from Beagle
+        sync_frames()
+
+        # 2) Find newest local JPG
+        latest = get_latest_local_image()
+        if latest and latest != last_shown:
+            img = cv2.imread(latest)
+            if img is not None:
+                cv2.imshow("Drone Live View", img)
+                last_shown = latest
+                print(f"\rShowing {os.path.basename(latest)}", end="")
+
+        # 3) Wait and check for 'q' to quit
+        if cv2.waitKey(int(SYNC_PERIOD * 1000)) & 0xFF == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()
+EOF
+
+chmod +x ~/drone_live_view.py
+//end
