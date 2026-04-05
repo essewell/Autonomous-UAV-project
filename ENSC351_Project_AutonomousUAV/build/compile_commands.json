@@ -1,0 +1,56 @@
+[
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/single.dir/single.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/single.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/single.cpp",
+  "output": "examples/CMakeFiles/single.dir/single.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/single.dir/__/VL53L0X.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/VL53L0X.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/VL53L0X.cpp",
+  "output": "examples/CMakeFiles/single.dir/__/VL53L0X.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/single.dir/__/I2Cdev.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/I2Cdev.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/I2Cdev.cpp",
+  "output": "examples/CMakeFiles/single.dir/__/I2Cdev.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/singleMinimal.dir/singleMinimal.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/singleMinimal.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/singleMinimal.cpp",
+  "output": "examples/CMakeFiles/singleMinimal.dir/singleMinimal.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/singleMinimal.dir/__/VL53L0X.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/VL53L0X.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/VL53L0X.cpp",
+  "output": "examples/CMakeFiles/singleMinimal.dir/__/VL53L0X.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/singleMinimal.dir/__/I2Cdev.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/I2Cdev.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/I2Cdev.cpp",
+  "output": "examples/CMakeFiles/singleMinimal.dir/__/I2Cdev.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/continuousMultipleSensors.dir/continuousMultipleSensors.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/continuousMultipleSensors.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/continuousMultipleSensors.cpp",
+  "output": "examples/CMakeFiles/continuousMultipleSensors.dir/continuousMultipleSensors.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/continuousMultipleSensors.dir/__/VL53L0X.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/VL53L0X.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/VL53L0X.cpp",
+  "output": "examples/CMakeFiles/continuousMultipleSensors.dir/__/VL53L0X.cpp.o"
+},
+{
+  "directory": "/home/devonb/ENSC351/work/Drone Project/build/examples",
+  "command": "/usr/bin/aarch64-linux-gnu-g++  -I\"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/examples/..\"  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -o CMakeFiles/continuousMultipleSensors.dir/__/I2Cdev.cpp.o -c \"/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/I2Cdev.cpp\"",
+  "file": "/home/devonb/ENSC351/work/Drone Project/vl53l0x-linux-master/I2Cdev.cpp",
+  "output": "examples/CMakeFiles/continuousMultipleSensors.dir/__/I2Cdev.cpp.o"
+}
+]

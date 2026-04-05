@@ -1,0 +1,1 @@
+/usr/bin/aarch64-linux-gnu-g++  -Wformat=2 -Wall -Wextra -O2 -std=gnu++11 -g -rdynamic -Wl,--dependency-file=CMakeFiles/single.dir/link.d CMakeFiles/single.dir/single.cpp.o CMakeFiles/single.dir/__/VL53L0X.cpp.o CMakeFiles/single.dir/__/I2Cdev.cpp.o -o single
